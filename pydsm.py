@@ -28,6 +28,9 @@ def _get_tasks_rand(func, it, chunksize):
         yield (func, x)
 
 
+
+
+    
 sense = Value("d", 1, lock = False)
 counter = Value("d", 0, lock = False)
 
@@ -67,32 +70,48 @@ class Cluster:
     # And pass the C to runPool as 'iter'
     # In this case, your func should be like this
     #               func(a, b, c, iter1, iter2)
-    # so that iter1 may take value 1, 2, 3 and iter2 may take value 4, 5, 6
-    def runPool(self, func, iter, multiArgs=None, star=False):
-        chunkSize = int(len(iter) / self.numThreads)
-        Pool._get_tasks = _get_tasks_rand
+    # so that at each iteration iter1 and iter2 will take the following values:
+    # iter1 = 1;    iter2 = 4
+    # iter1 = 2;    iter2 = 5
+    # iter1 = 3;    iter2 = 6
+    
+    # def runPool(self, func, iter, multiArgs=None, star=False):
+    #     chunkSize = int(len(iter) / self.numThreads)
+    #     # Pool._get_tasks = _get_tasks_rand
+    #     # Pool._map_async = _my_map_async
 
-        # set up a cluster
-        p = Pool(self.numThreads)
+    #     # set up a cluster
+    #     p = Pool(Cluster.numThreads)
 
-        if multiArgs != None:
-            for arg in multiArgs:
-                func = partial(func, arg)
+    #     if multiArgs != None:
+    #         for arg in multiArgs:
+    #             func = partial(func, arg)
 
-        if star == True:
-            result = p.starmap(func, iter, chunkSize)
-        else:
-            result = p.map(func, iter, chunkSize)
+    #     if star == True:
+    #         result = p.starmap(func, iter, chunkSize)
+    #     else:
+    #         result = p.map(func, iter, chunkSize)
 
-     #   p.terminate()
-        return result
+    #     p.terminate()
+    #     return result
         
+
+
+    def __enter__(self):
+        return self
+
+    
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.deleteShared()
+
+
 
     # paras need to be a tuple
     def runProcesses(self, func, paras = ()):
 
         p_list = []
         for id in range(self.numThreads):
+            # id starts at zero, and ends at numThreads - 1
             self.resources = self.resources.copy() # a shallow copy of itself
             self.resources['id'] = id
             p_list.append(Process(target = func, args = (self.resources, ) + paras))
@@ -104,7 +123,7 @@ class Cluster:
             p.join()
         
         
-        self.deleteShared()
+        # self.deleteShared()
    
 
 
@@ -131,7 +150,8 @@ class Cluster:
 
 
     # create a shared array initialized to zeros
-    def createShared(self, name, shape, dataType):
+    # this shared array will be automatically deleted once processes finish
+    def createShared(self, name, shape, dataType = int):
         # check name != 'id' and name != 'lock' and no repeated names
         try:
             if name in self.resources:
@@ -142,7 +162,7 @@ class Cluster:
             exit(str(e))
             
         sharedLoc = "shm://" + name
-        sharedAry = sa.create(sharedLoc, shape, dtype = int)
+        sharedAry = sa.create(sharedLoc, shape, dataType)
         self.sharedList.append(sharedAry)
         self.resources[name] = sharedAry
 
@@ -154,3 +174,48 @@ class Cluster:
         for s in self.sharedList:
             sa.delete(s.base.name)
             del s
+
+
+
+    # if length is not divisible by n, those extra numbers
+    # will be placed in the list of the last process
+    # For example, given a length of 10, and numThreads of 3
+    # and after shuffling, ary = [1, 3, 4, 0, 2, 7, 9, 8, 6, 5]
+    # Then, 
+    # process with id 0 will get [1, 3, 4]
+    # process with id 1 will get [0, 2, 7]
+    # process with id 2 will get [9, 8, 6, 5]
+    @classmethod
+    def splitIndices(cls, length, id, random = True):
+        n = cls.numThreads
+
+        if id == 0:
+            ary = sa.create("shm://spInd2048", length, int)
+            ary[:] = np.arange(length)
+            if random:
+                np.random.shuffle(ary)
+        
+        cls.barrier()
+
+        if id != 0:
+            ary = sa.attach("spInd2048")
+
+
+        # copy the computed numpy array to a new iterable
+        # then delete the shared array
+        # return a slice of iterable to each process
+
+        chunkSize = int(length / n)
+        result = list(ary)
+
+        cls.barrier()
+
+        if id == 0:
+            sa.delete("spInd2048")
+            del ary
+
+        if id == n - 1:
+            return result[id*chunkSize:]
+        else:
+            return result[id*chunkSize:(id+1)*chunkSize]
+
