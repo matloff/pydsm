@@ -54,55 +54,14 @@ class Cluster:
         self.resources["lock"] = self.mlock
         self.resources["id"] = -1
         
-
-
-
-    # Func parameter needs to follow this format with iterable on the end
-    #               func(a, b, c, iterable+); + means one or more 
-    #
-    # If the func to be executed has more than one argument
-    # then put all the arguments except the iterable(s) into a list of multiArgs
-    # e.g.  multiArgs = [2, 4, 5]   # a = 2, b = 4, c = 5
-    #
-    # star is True when you have iterable of iterables
-    # For example, you want to add two vectors A = [1, 2, 3], B = [4, 5, 6]
-    # Then create a new list of lists C = [[1, 4], [2, 5], [3, 6]]
-    # And pass the C to runPool as 'iter'
-    # In this case, your func should be like this
-    #               func(a, b, c, iter1, iter2)
-    # so that at each iteration iter1 and iter2 will take the following values:
-    # iter1 = 1;    iter2 = 4
-    # iter1 = 2;    iter2 = 5
-    # iter1 = 3;    iter2 = 6
-    
-    # def runPool(self, func, iter, multiArgs=None, star=False):
-    #     chunkSize = int(len(iter) / self.numThreads)
-    #     # Pool._get_tasks = _get_tasks_rand
-    #     # Pool._map_async = _my_map_async
-
-    #     # set up a cluster
-    #     p = Pool(Cluster.numThreads)
-
-    #     if multiArgs != None:
-    #         for arg in multiArgs:
-    #             func = partial(func, arg)
-
-    #     if star == True:
-    #         result = p.starmap(func, iter, chunkSize)
-    #     else:
-    #         result = p.map(func, iter, chunkSize)
-
-    #     p.terminate()
-    #     return result
         
-
 
     def __enter__(self):
         return self
 
     
     def __exit__(self, exc_type, exc_value, traceback):
-        self.deleteShared()
+        self.terminate()
 
 
 
@@ -174,6 +133,11 @@ class Cluster:
         for s in self.sharedList:
             sa.delete(s.base.name)
             del s
+
+
+
+    def terminate(self):
+        self.deleteShared()
 
 
 

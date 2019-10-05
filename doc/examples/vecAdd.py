@@ -39,4 +39,4 @@ def main():
         print("Check out vector C in main: {}" .format(C))
 
 if __name__ == "__main__":
-    main()
+        main()
