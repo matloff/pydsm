@@ -1,7 +1,7 @@
 # Pydsm
 
-This package makes use of the 
-SharedArray and the multiprocessing package and is still under development.
+This package makes use of the SharedArray and the multiprocessing package 
+and is still under development.
 
 ## Authors
 
@@ -34,7 +34,7 @@ a = cluster.createShared(name = "A", shape = 10, dataType = int)
 ```
 
 One provides the global array with an arbitrary
- but unique name, the shape (i.e., dimension) of
+but unique name, the shape (i.e., dimension) of
 the array, and the datatype (default is int).
 The shape and datatype arguments will follow the
 same format as those typical numpy functions 
@@ -90,6 +90,7 @@ pydsm.Cluster.barrier()
 ```
 
 ## Example
-Let's go through an example that adds up
-two vectors in parallel.
+Let's go through an example. 
+In this example, two vectors are added
+up in parallel.
 

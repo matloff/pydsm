@@ -1,33 +1,12 @@
-from multiprocessing.pool import Pool
 from multiprocessing import Process, Value
-from multiprocessing.sharedctypes import Array
-import multiprocessing
+from multiprocessing import Lock
 import os
-import itertools
 import random
-from functools import partial
 import numpy as np
 import SharedArray as sa
 
 
 # This Pydsm pacakge uses SharedArray and multiprocessing modules
-
-
-
-
-# Override the get_task in multiprocessing to solve the load balancing issue
-def _get_tasks_rand(func, it, chunksize):
-    # Modify get tasks so that this
-    # randomly assign threads to elements in the array
-    random.shuffle(it)
-    it = iter(it)
-    while 1:
-        x = tuple(itertools.islice(it, chunksize))
-        if not x:
-            return
-        yield (func, x)
-
-
 
 
     
@@ -38,7 +17,7 @@ counter = Value("d", 0, lock = False)
 class Cluster:
 
     numThreads = None
-    ownlock = multiprocessing.Lock()
+    ownlock = Lock()
 
     def __init__(self, numThreads = None):
         if numThreads == None:
@@ -46,7 +25,7 @@ class Cluster:
         else:
             Cluster.numThreads = numThreads    
 
-        self.mlock = multiprocessing.Lock()
+        self.mlock = Lock()
 
         self.sharedList = []  # a list of shared variables
 
@@ -73,7 +52,7 @@ class Cluster:
             # id starts at zero, and ends at numThreads - 1
             self.resources = self.resources.copy() # a shallow copy of itself
             self.resources['id'] = id
-            p_list.append(Process(target = func, args = (self.resources, ) + paras))
+            p_list.append(Process(target=func, args=(self.resources, )+paras))
         
         for p in p_list:
             p.start()
