@@ -1,6 +1,12 @@
 import pydsm
 import math
 import sys
+import time
+
+# Execution format: python findPrime.py range
+# e.g. > python findPrime.py 10000
+# to find primes within 10000
+
 
 # Shared variables:
 #   nthreads;    number of threads
@@ -23,10 +29,10 @@ def crossout(k, n, prime):
 # each thread's work
 def work(resource):
     # get the pointers/references to shared vars
-    N = resource['N']
-    prime = resource['prime']
-    nextBase = resource['nextBase']
-    numWork = resource['numWork']
+    N = pydsm.Cluster.getShared('N')
+    prime = pydsm.Cluster.getShared('prime')
+    nextBase = pydsm.Cluster.getShared('nextBase')
+    numWork = pydsm.Cluster.getShared('numWork')
     
     # get the unique id of each thread
     myid = resource['id']
@@ -34,7 +40,7 @@ def work(resource):
     lock = resource['lock']
 
     numWork[myid] = 0 # total work done by this thread
-    lim = int(math.sqrt(N)) # don't check multipliers greater than sqrt(N)
+    lim = int(math.sqrt(N[0])) # don't check multipliers greater than sqrt(N)
 
     while 1:
         lock.acquire()
@@ -58,7 +64,7 @@ def main():
     with pydsm.Cluster(nthreads) as p:
 
         N = p.createShared("N", 1, int)
-        N[0] = sys.argv[1] # range
+        N[0] = int(sys.argv[1]) # range
         prime = p.createShared("prime", N[0] + 1, int)
         nextBase = p.createShared("nextBase", 1, int)
         numWork = p.createShared("numWork", nthreads, int)
@@ -92,4 +98,6 @@ def main():
 
 
 if __name__ == "__main__":
+    start = time.time()
     main()
+    print('Runtime: {0:0.1f} seconds'.format(time.time() - start))

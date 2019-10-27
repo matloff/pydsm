@@ -24,23 +24,20 @@ with pydsm.Cluster(4) as cluster:
 
 ### Global array
 
-In pydsm, all global arrays in shared memory are 
-numpy arrays. To create a global array, one needs 
-to first create a cluster and then call 
+In pydsm, all global arrays in shared memory are numpy arrays. 
+To create a global array, one needs to first create a cluster and then call 
 `createShared()`.
 
 ```
 a = cluster.createShared(name = "A", shape = 10, dataType = int)
 ```
 
-One provides the global array with an arbitrary
-but unique name, the shape (i.e., dimension) of
-the array, and the datatype (default is int).
-The shape and datatype arguments will follow the
-same format as those typical numpy functions 
-such as `numpy.zeros()`. The returned array is 
-an array with all elements initialized to zeros. 
-All names of the global arrays should be unique.
+One provides the global array with an arbitrary but unique name, 
+the shape (i.e., dimension) of the array, and the datatype (default is int).
+The shape and datatype arguments will follow the same format as those typical 
+numpy functions such as `numpy.zeros()`. The returned array is an array with
+all elements initialized to zeros. All names of the global arrays should be 
+unique.
 
 ### Run the processes
 Then, `runProcesses(func)` is invoked 
@@ -53,16 +50,22 @@ cluster.runProcesses(foo)
 
 ### Parallelized function
 
-The function `foo` implemented by the user will
-be executed by 4 processes simultaneously.
-**Note that all user's parallel functions 
-(foo, etc.) needs to have at least 
-one parameter.**
-The first parameter will be a dictionary
-that contains references to the id of each
+The function `foo` implemented by the user will be executed by 4 processes simultaneously. **Note that all user's parallel functions (foo, etc.) 
+needs to have one mendatory parameter.**
+This mendatory parameter, which I like to 'resource',
+needs to be placed at the beginning.
+So your parallelized function will be like the following.
+
+```
+def foo(res, ...):
+	# res is the resource
+	# ... means any extra parameters you may need
+	# Code
+```
+
+Resource is a dictionary that contains references to the id of each
 process, the global array(s), and the lock.
-From now on, I will refer to the first parameter
-as 'resource'.
+
 
 ### Locks and barriers
 
@@ -91,6 +94,5 @@ pydsm.Cluster.barrier()
 
 ## Example
 Let's go through an example. 
-In this example, two vectors are added
-up in parallel.
+In this example, two vectors are added up in parallel.
 
