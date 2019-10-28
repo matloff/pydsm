@@ -1,30 +1,24 @@
-from multiprocessing import Process, Value
+from multiprocessing import Process
 from multiprocessing import Lock
 import os
 import random
 import numpy as np
 import SharedArray as sa
-
+import fcntl
 
 # This Pydsm pacakge uses SharedArray and multiprocessing modules
 
 
-    
-sense = Value("d", 1, lock = False)
-counter = Value("d", 0, lock = False)
-
-
 class Cluster:
 
-    numThreads = None
-    ownlock = Lock()
-
-    def __init__(self, numThreads = None):
-        if numThreads == None:
-            Cluster.numThreads = os.cpu_count()
-        else:
-            Cluster.numThreads = numThreads    
-
+    def __init__(self, numThread = None):
+        if numThread == None:
+           numThread = os.cpu_count()
+        self.numThread = numThread
+        
+        self._initbarr(numThread)
+        # self._initlock()
+        self.fd = os.open('FILE_LOCK', os.O_CREAT)
         self.mlock = Lock()
 
         self.sharedList = []  # a list of shared variables
@@ -48,8 +42,8 @@ class Cluster:
     def runProcesses(self, func, paras = ()):
 
         p_list = []
-        for id in range(self.numThreads):
-            # id starts at zero, and ends at numThreads - 1
+        for id in range(self.numThread):
+            # id starts at zero, and ends at numThread - 1
             self.resources = self.resources.copy() # a shallow copy of itself
             self.resources['id'] = id
             p_list.append(Process(target=func, args=(self.resources, )+paras))
@@ -60,29 +54,47 @@ class Cluster:
         for p in p_list:
             p.join()
         
-        
-        # self.deleteShared()
    
+    
+    # def _initlock(self):
+    #     # get File descriptor to the locked file
+    #     fd = os.open('FILE_LOCK', os.O_CREAT)
+    #     # # store fd as a shared variable
+    #     # result = sa.create("shm://fd2048", 1, int)
+    #     # result[0] = fd
 
+        
+        
+
+    def _initbarr(self, numThread):
+        nt = sa.create("shm://numThread2048", 1, int)
+        nt[0] = numThread
+        sense = sa.create("shm://sense2048", 1, int)
+        sense[0] = 1
+        counter = sa.create("shm://counter2048", 1, int)
+        counter[0] = 0
 
 
     # Sense Reversal barrier
     @classmethod
     def barrier(cls):
-        cls.ownlock.acquire()
-        loc_sense = sense.value
+        fd = cls.filelock()
+        sense = sa.attach("shm://sense2048")
+        counter = sa.attach("shm://counter2048")
+        loc_sense = sense[0]
+        nt = sa.attach("numThread2048")
+        numThread = nt[0]
 
-
-        if counter.value == cls.numThreads - 1:  # last thread finished
+        if counter[0] == numThread - 1:  # last thread finished
             # Now every thread has reached the barrier
             # Reset everything
-            counter.value = 0
-            sense.value = 1 - sense.value
-            cls.ownlock.release()
+            counter[0] = 0
+            sense[0] = 1 - sense[0]
+            cls.fileunlock(fd)
         else:
-            counter.value += 1
-            cls.ownlock.release()
-            while loc_sense == sense.value:
+            counter[0] += 1
+            cls.fileunlock(fd)
+            while loc_sense == sense[0]:
                 pass
 
 
@@ -107,22 +119,33 @@ class Cluster:
 
         return sharedAry
 
+    
+    @classmethod
+    def getShared(cls, name):
+        return sa.attach(name)
 
     def deleteShared(self):
         for s in self.sharedList:
             sa.delete(s.base.name)
             del s
+        sa.delete("shm://counter2048")
+        sa.delete("shm://sense2048")
+        sa.delete("shm://numThread2048")
+
 
 
 
     def terminate(self):
+        # fd = os.open('FILE_LOCK', os.O_CREAT)
+        os.close(self.fd)
+        os.unlink("./FILE_LOCK")
         self.deleteShared()
 
 
 
     # if length is not divisible by n, those extra numbers
     # will be placed in the list of the last process
-    # For example, given a length of 10, and numThreads of 3
+    # For example, given a length of 10, and numThread of 3
     # and after shuffling, ary = [1, 3, 4, 0, 2, 7, 9, 8, 6, 5]
     # Then, 
     # process with id 0 will get [1, 3, 4]
@@ -130,14 +153,14 @@ class Cluster:
     # process with id 2 will get [9, 8, 6, 5]
     @classmethod
     def splitIndices(cls, length, id, random = True):
-        n = cls.numThreads
+        n = sa.attach("numThread2048")[0]
 
         if id == 0:
             ary = sa.create("shm://spInd2048", length, int)
             ary[:] = np.arange(length)
             if random:
                 np.random.shuffle(ary)
-        
+
         cls.barrier()
 
         if id != 0:
@@ -162,3 +185,16 @@ class Cluster:
         else:
             return result[id*chunkSize:(id+1)*chunkSize]
 
+
+    @classmethod
+    def filelock(cls):
+        fd = os.open('FILE_LOCK', os.O_CREAT)
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        return fd
+        
+
+    @classmethod
+    def fileunlock(cls, fd):
+        fcntl.flock(fd, fcntl.LOCK_UN)
+        os.close(fd)
+     
