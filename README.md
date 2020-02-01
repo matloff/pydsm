@@ -50,11 +50,13 @@ cluster.runProcesses(foo)
 
 ### Parallelized function
 
-The function `foo` implemented by the user will be executed by 4 processes simultaneously. **Note that all user's parallel functions (foo, etc.) 
-needs to have one mendatory parameter.**
-This mendatory parameter, which I like to 'resource',
-needs to be placed at the beginning.
-So your parallelized function will be like the following.
+The function `foo` implemented by the user will be executed 
+by 4 processes simultaneously. 
+**The first argument of a user's parallel function is mendatory.**
+This mendatory parameter is a dictionary that contains **resource**
+you may need for your parallel function.
+It has references to the id of each process, the global array(s), and a lock.
+
 
 ```
 def foo(res, ...):
@@ -63,8 +65,6 @@ def foo(res, ...):
 	# Code
 ```
 
-Resource is a dictionary that contains references to the id of each
-process, the global array(s), and the lock.
 
 
 ### Locks and barriers

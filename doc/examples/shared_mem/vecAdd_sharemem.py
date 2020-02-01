@@ -4,7 +4,7 @@ from multiprocessing import Process
 import sys
 # import time
 
-# Execution format: python vecAdd_sharemem.py vec_length numthreads
+# Usage: python vecAdd_sharemem.py vec_length numthreads
 
 
 def add(myid, myidxs, n, name_a, name_b, name_c):
@@ -18,9 +18,6 @@ def add(myid, myidxs, n, name_a, name_b, name_c):
     C = np.ndarray(n, dtype=np.int64, buffer=c_shm.buf)
 
     C[myidxs] = A[myidxs] + B[myidxs]
-    # if myid == 1:
-    #     # needs a barrier above
-    #     print("Check out vector C in processes: {}" .format(C))
     
     a_shm.close()
     b_shm.close()
@@ -38,7 +35,7 @@ def main():
     A = np.ndarray(a.shape, dtype=a.dtype, buffer=shm_a.buf)
     A[:] = a[:]
 
-    b = np.arange(n)
+    b = np.arange(n) + 1
     shm_b = shared_memory.SharedMemory(create=True, size=b.nbytes)
     B = np.ndarray(b.shape, dtype=b.dtype, buffer=shm_b.buf)
     B[:] = b[:]
@@ -49,7 +46,7 @@ def main():
     # C is populated with all zeros
 
 
-    p_list = []
+    p_list = [] # a list of subprocesses
     chunkSize = int(n / numThread)
     for id in range(numThread):
         # id starts at zero, and ends at numThread - 1
@@ -60,6 +57,7 @@ def main():
         p_list.append(Process(target=add, args=(id, idxs, n, shm_a.name, 
                         shm_b.name, shm_c.name)))
     
+    # Run the parallel processes
     for p in p_list:
         p.start()
     

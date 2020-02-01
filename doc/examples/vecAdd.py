@@ -1,9 +1,24 @@
 import pydsm
 import numpy as np
 import sys
-# import time
+import time
 
-# Execution format: python vecAdd.py vec_length numthreads
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("length", help="the length of the vector A/B",
+                        type=int, nargs='?', default=100)
+parser.add_argument("numthreads", help="the number of parallel threads",
+                        type=int, nargs='?', default=4)
+parser.add_argument("-t", "--time", help="time the program", 
+                        action="store_true")
+args = parser.parse_args()
+
+# Usage: python vecAdd.py <vec_length> <numthreads>
+
+# Vector addition; the sum of a vector A and a vector B is computed;
+# the result is stored in the vector C
+
+
 
 # Every function needs to have a resource in the beginning
 def add(resource, n):
@@ -24,8 +39,8 @@ def add(resource, n):
 
 def main():
     # a cluster of 4 processes
-    n = int(sys.argv[1])
-    numthreads = int(sys.argv[2])
+    n = args.length
+    numthreads = args.numthreads
     with pydsm.Cluster(numthreads) as cluster:
         A = cluster.createShared(name = "A", shape = n, dataType = int)
         B = cluster.createShared("B", n, int)
@@ -42,6 +57,9 @@ def main():
         print("Check out vector C in main: {}" .format(C))
 
 if __name__ == "__main__":
-    # start = time.time()
+    start = time.time()
     main()
-    # print('Runtime: {0:0.1f} seconds'.format(time.time() - start))
+    end = time.time()
+    if args.time:
+        print()
+        print("This takes %.2f seconds" % (end - start))
