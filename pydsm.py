@@ -143,7 +143,7 @@ class Cluster:
 
 
 
-    # if length is not divisible by n, those extra numbers
+    # if length is not divisible by n, those extra terms
     # will be placed in the list of the last process
     # For example, given a length of 10, and numThread of 3
     # and after shuffling, ary = [1, 3, 4, 0, 2, 7, 9, 8, 6, 5]

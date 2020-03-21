@@ -6,7 +6,7 @@ import time
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("length", help="the length of the vector A/B",
-                        type=int, nargs='?', default=100)
+                        type=int, nargs='?', default=10)
 parser.add_argument("numthreads", help="the number of parallel threads",
                         type=int, nargs='?', default=4)
 parser.add_argument("-t", "--time", help="time the program", 
@@ -27,7 +27,7 @@ def add(resource, n):
     B = pydsm.Cluster.getShared("B")
     C = pydsm.Cluster.getShared("C")
 
-    myidxs = pydsm.Cluster.splitIndices(n, myid, random=False)
+    myidxs = pydsm.Cluster.splitIndices(n, myid, random=True)
     C[myidxs] = A[myidxs] + B[myidxs]
 
     # Below is just for illustrative purpose
