@@ -7,6 +7,11 @@
 * POSIX (Linux, variants of Unix including macOS, etc.)
 * Python 3 is recommended
 
+To install the SharedArray package, one can do:
+
+```
+pip install SharedArray
+```
 
 ## Authors
 
