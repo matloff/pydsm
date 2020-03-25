@@ -37,9 +37,9 @@ def add(resource, n):
     C[myidxs] = A[myidxs] + B[myidxs]
 
     # Below is just for illustrative purpose
-    # pydsm.Cluster.barrier()
-    # if myid == 1:
-    #     print("Check out vector C in processes: {}" .format(C))
+    pydsm.Cluster.barrier()
+    if myid == 1:
+        print("Check out vector C in processes: {}" .format(C))
 
 
 

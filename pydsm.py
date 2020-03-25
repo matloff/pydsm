@@ -1,12 +1,13 @@
 from multiprocessing import Process
 from multiprocessing import Lock
 import os
+import time
 import random
 import numpy as np
 import SharedArray as sa
 import fcntl
+import errno
 
-# This Pydsm pacakge uses SharedArray and multiprocessing modules
 
 
 class Cluster:
@@ -99,10 +100,10 @@ class Cluster:
 
 
 
-    # create a shared array initialized to zeros
+    # Create a shared array initialized to zeros
     # this shared array will be automatically deleted once processes finish
     def createShared(self, name, shape, dataType = int):
-        # check name != 'id' and name != 'lock' and no repeated names
+        # Check name != 'id' and name != 'lock' and no repeated names
         try:
             if name in self.resources:
                 self.deleteShared()
@@ -136,14 +137,19 @@ class Cluster:
 
 
     def terminate(self):
-        # fd = os.open('FILE_LOCK', os.O_CREAT)
         os.close(self.fd)
         os.unlink("./FILE_LOCK")
         self.deleteShared()
+        # In the case of abrupt termination of program, "shm://spInd2048" may
+        # not be deleted. So need to delete it here
+        try:
+            sa.delete("spInd2048")
+        except (IOError, OSError): # FileNotFoundError
+            pass
 
 
 
-    # if length is not divisible by n, those extra terms
+    # If length is not divisible by n, those extra terms
     # will be placed in the list of the last process
     # For example, given a length of 10, and numThread of 3
     # and after shuffling, ary = [1, 3, 4, 0, 2, 7, 9, 8, 6, 5]
@@ -167,7 +173,7 @@ class Cluster:
             ary = sa.attach("spInd2048")
 
 
-        # copy the computed numpy array to a new iterable
+        # Copy the computed numpy array to a new iterable
         # then delete the shared array
         # return a slice of iterable to each process
 
@@ -188,13 +194,24 @@ class Cluster:
 
     @classmethod
     def filelock(cls):
-        fd = os.open('FILE_LOCK', os.O_CREAT)
-        fcntl.flock(fd, fcntl.LOCK_EX)
+        fd = os.open('FILE_LOCK', os.O_RDONLY)
+        while True:
+            try:
+                # Acquire the lock
+                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except (IOError, OSError) as e:
+                # Raise if the error is not EAGAIN 
+                # (i.e. Resource temporarily unavailable)
+                if e.errno != errno.EAGAIN:
+                    raise
+            time.sleep(0.01) # Sleep to avoid busy waiting
         return fd
         
 
     @classmethod
     def fileunlock(cls, fd):
-        fcntl.flock(fd, fcntl.LOCK_UN)
+        # Release the lock
+        fcntl.flock(fd, fcntl.LOCK_UN | fcntl.LOCK_NB)
         os.close(fd)
      
