@@ -11,7 +11,13 @@ parser.add_argument("numthreads", help="the number of parallel threads",
                         type=int, nargs='?', default=4)
 parser.add_argument("-t", "--time", help="time the program", 
                         action="store_true")
-args = parser.parse_args()
+
+try:
+    args = parser.parse_args()
+except SystemExit as e: 
+    if e.code == 2:
+        parser.print_help()
+    sys.exit(0)
 
 # Usage: python vecAdd.py <vec_length> <numthreads>
 

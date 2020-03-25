@@ -3,8 +3,25 @@ import math
 import sys
 import time
 
-# Execution format: python findPrime.py range
-# e.g. > python findPrime.py 10000
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("range", help="find prime numbers within the range",
+                        type=int, nargs='?', default=10000)
+parser.add_argument("nthreads", help="the number of parallel threads",
+                        type=int, nargs='?', default=4)
+parser.add_argument("-t", "--time", help="time the program", 
+                        action="store_true")
+
+try:
+    args = parser.parse_args()
+except SystemExit as e: 
+    if e.code == 2:
+        parser.print_help()
+    sys.exit(0)
+
+
+# Usage: python findPrime.py <range> <nthreads>
+# e.g. $ python findPrime.py 10000
 # to find primes within 10000
 
 
@@ -60,11 +77,12 @@ def work(resource):
 
 
 def main():
-    nthreads = 4
+    nthreads = args.nthreads
+    myrange = args.range
     with pydsm.Cluster(nthreads) as p:
 
         N = p.createShared("N", 1, int)
-        N[0] = int(sys.argv[1]) # range
+        N[0] = myrange
         prime = p.createShared("prime", N[0] + 1, int)
         nextBase = p.createShared("nextBase", 1, int)
         numWork = p.createShared("numWork", nthreads, int)
@@ -100,4 +118,7 @@ def main():
 if __name__ == "__main__":
     start = time.time()
     main()
-    print('Runtime: {0:0.1f} seconds'.format(time.time() - start))
+    end = time.time()
+    if args.time:
+        print()
+        print("This takes %.2f seconds" % (end - start))

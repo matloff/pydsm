@@ -1,5 +1,6 @@
 import pydsm
 import numpy as np
+import sys
 import time
 
 import argparse
@@ -12,7 +13,13 @@ parser.add_argument("numthreads", help="the number of parallel threads",
                         type=int, nargs='?', default=4)
 parser.add_argument("-t", "--time", help="time the program", 
                         action="store_true")
-args = parser.parse_args()
+
+try:
+    args = parser.parse_args()
+except SystemExit as e: 
+    if e.code == 2:
+        parser.print_help()
+    sys.exit(0)
 
 
 
@@ -63,7 +70,7 @@ def main():
         # Now run the processes
         cluster.runProcesses(mult, paras=(nrowU,))
         
-    # print("Check out matrix w in main: {}" .format(w))
+    print("Check out matrix w in main: {}" .format(w))
 
 
 

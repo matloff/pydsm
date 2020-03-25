@@ -1,5 +1,10 @@
 # Pydsm
 
+While the multi-thread parallel performance is limited in Python because of 
+the Global Interpreter Lock, Pydsm provided parallel computation that
+truly shares memory between processes in a distributed way.
+
+
 ## Requirements
 
 * SharedArray
@@ -202,6 +207,11 @@ if myid == 1:
 	# C will be '[ 1  3  5  7  9 11 13 15 17 19]'
 ```
 
+
+## More examples
+
+For more sample applications using pydsm such as finding prime numbers and
+matrix multiplication, they are under the directory `inst/`.
 
 
 
