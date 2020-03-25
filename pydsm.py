@@ -212,6 +212,6 @@ class Cluster:
     @classmethod
     def fileunlock(cls, fd):
         # Release the lock
-        fcntl.flock(fd, fcntl.LOCK_UN | fcntl.LOCK_NB)
+        fcntl.flock(fd, fcntl.LOCK_UN)
         os.close(fd)
      
