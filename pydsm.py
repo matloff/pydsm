@@ -115,9 +115,10 @@ class Cluster:
         return sa.attach(name)
 
     def deleteShared(self):
-        for s in self.sharedList:
-            sa.delete(s.base.name)
-            del s
+        for key, value in self.resources.items():
+            if key != 'id' and key != 'lock':
+                sa.delete(key)
+                del value
         sa.delete("shm://counter2048")
         sa.delete("shm://sense2048")
         sa.delete("shm://numThread2048")

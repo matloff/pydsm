@@ -39,7 +39,10 @@ def add(resource, n):
     # Below is just for illustrative purpose
     pydsm.Cluster.barrier()
     if myid == 1:
-        print("Check out vector C in processes: {}" .format(C))
+        # In some versions of python, printing C directly may cause issues.
+        # It is better to first convert the SharedArray into an numpy array
+        # and then print it. So do np.array(C) before printing
+        print("Check out vector C in processes: ", np.array(C))
 
 
 
@@ -59,8 +62,7 @@ def main():
 
         # Now run the processes
         cluster.runProcesses(add, paras=(n,))
-        
-        print("Check out vector C in main: {}" .format(C))
+        print("Check out vector C in main: ", np.array(C))
 
 if __name__ == "__main__":
     start = time.time()

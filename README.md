@@ -203,8 +203,10 @@ The process 1 will print out C after the computation is done.
 # Below is just for illustrative purpose
 pydsm.Cluster.barrier()
 if myid == 1:
-    print("The result is: {}" .format(C))
-	# C will be '[ 1  3  5  7  9 11 13 15 17 19]'
+	# In some versions of python, printing C directly may cause issues.
+	# It is better to first convert the SharedArray into an numpy array
+	# and then print it. So do np.array(C) before printing
+	print("Check out vector C in processes: ", np.array(C))
 ```
 
 

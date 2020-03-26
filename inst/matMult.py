@@ -70,7 +70,7 @@ def main():
         # Now run the processes
         cluster.runProcesses(mult, paras=(nrowU,))
         
-    print("Check out matrix w in main: {}" .format(w))
+        print("Check out matrix w in main: {}" .format(np.array(w)))
 
 
 
