@@ -18,7 +18,6 @@ class Cluster:
         self.numThread = numThread
         
         self._initbarr(numThread)
-        # self._initlock()
         self.fd = os.open('FILE_LOCK', os.O_CREAT)
         self.mlock = Lock()
 
@@ -54,16 +53,6 @@ class Cluster:
         
         for p in p_list:
             p.join()
-        
-   
-    
-    # def _initlock(self):
-    #     # get File descriptor to the locked file
-    #     fd = os.open('FILE_LOCK', os.O_CREAT)
-    #     # # store fd as a shared variable
-    #     # result = sa.create("shm://fd2048", 1, int)
-    #     # result[0] = fd
-
         
         
 

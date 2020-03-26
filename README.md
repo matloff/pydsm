@@ -10,7 +10,7 @@ truly shares memory between processes in a distributed way.
 * SharedArray
 * numpy
 * POSIX (Linux, variants of Unix including macOS, etc.)
-* Python 3 is recommended
+* Python 2 is supported, but Python 3 is recommended
 
 To install the SharedArray package, one can do:
 
@@ -20,7 +20,7 @@ pip install SharedArray
 
 ## Authors
 
-Zhiyuan Guo (Daniel)
+Zhiyuan Guo
 
 Norm Matloff
 
@@ -212,6 +212,10 @@ if myid == 1:
 
 For more sample applications using pydsm such as finding prime numbers and
 matrix multiplication, they are under the directory `inst/`.
+
+<!-- ## Issues
+
+FileExistsError: [Errno 17] File exists: 'shm://A' -->
 
 
 
