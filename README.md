@@ -12,10 +12,10 @@ truly shares memory between processes in a distributed way.
 * POSIX (Linux, variants of Unix including macOS, etc.)
 * Python 2 is supported, but Python 3 is recommended
 
-To install the SharedArray package, one can do:
+You can install py-dsm via the `pip` command:
 
 ```
-pip install SharedArray
+pip install py-dsm
 ```
 
 ## Authors
@@ -216,10 +216,25 @@ if myid == 1:
 For more sample applications using pydsm such as finding prime numbers and
 matrix multiplication, they are under the directory `inst/`.
 
-<!-- ## Issues
+## Notes
 
-FileExistsError: [Errno 17] File exists: 'shm://A' -->
+If your program is terminated abnormally, py-dsm may not compeletely delete
+your shared variables. When you run your program next time, you may encounter
+the following error message because your program is trying to create a
+shared variable that is still alive.
 
+```
+# You are trying to create a shared variable named 'A', but there is
+# already a shared var named 'A'. 
+FileExistsError: [Errno 17] File exists: 'shm://A'
+```
 
+In this scenario, you need to delete the shared variable yourself in the Python
+interpreter.
+
+```
+>>> import SharedArray as sa
+>>> sa.delete("A")
+```
 
 
