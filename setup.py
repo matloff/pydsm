@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
 	name="py-dsm",
-	version="1.0.1",
+	version="1.1.1",
 	author="Daniel Guo, Norm Matloff",
 	author_email="zhyguo@ucdavis.edu, matloff@cs.ucdavis.edu",
 	description="Python true-shared memory parallel computation",
