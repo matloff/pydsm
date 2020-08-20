@@ -7,6 +7,8 @@ import numpy as np
 import SharedArray as sa
 import fcntl
 import errno
+import signal
+import sys
 
 
 
@@ -17,14 +19,15 @@ class Cluster:
            numThread = os.cpu_count()
         self.numThread = numThread
         
+        # for sig in (signal.SIGABRT, signal.SIGINT, signal.SIGTERM):
+        #     signal.signal(sig, self.terminate)
+        
         self._initbarr(numThread)
         self.fd = os.open('FILE_LOCK', os.O_CREAT)
-        self.mlock = Lock()
 
         self.sharedList = []  # a list of shared variables
 
         self.resources = {}
-        self.resources["lock"] = self.mlock
         self.resources["id"] = -1
         
         
@@ -103,22 +106,31 @@ class Cluster:
             
         sharedLoc = "shm://" + name
         sharedAry = sa.create(sharedLoc, shape, dataType)
-        self.sharedList.append(sharedAry)
+        self.sharedList.append(name)
         self.resources[name] = sharedAry
-
 
         return sharedAry
 
+    # Create an instance of lock
+    def createLock(self, name):
+        # Check name != 'id' and name != 'lock' and no repeated names
+        try:
+            if name in self.resources:
+                self.deleteShared()
+                raise KeyError("Name '" + str(name) + "' repetition:" +
+                    "Please use a different name.")
+        except KeyError as e:
+            exit(str(e))
+        
+        self.resources[name] = Lock()
     
     @classmethod
     def getShared(cls, name):
         return sa.attach(name)
 
     def deleteShared(self):
-        for key, value in self.resources.items():
-            if key != 'id' and key != 'lock':
-                sa.delete(key)
-                del value
+        for key in self.sharedList:
+            sa.delete(key)
         sa.delete("shm://counter2048")
         sa.delete("shm://sense2048")
         sa.delete("shm://numThread2048")

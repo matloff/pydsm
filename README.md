@@ -107,7 +107,7 @@ Then retrieve the lock from 'resource' (the first parameter)
 in the parallel function.
 
 ```
-lock = res['lock']
+lock = res['foo_lock']
 ```
 
 Then, the user can apply the lock anywhere
