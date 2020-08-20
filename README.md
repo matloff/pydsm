@@ -27,6 +27,14 @@ Norm Matloff
 
 ## Usage
 
+### Import Pydsm
+
+To import pydsm in your program, say `foo.py`, simply do
+
+```
+# foo.py
+import pydsm
+```
 
 ### Start the processes
 

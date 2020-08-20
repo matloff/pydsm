@@ -6,9 +6,9 @@ import time
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("range", help="find prime numbers within the range",
-                        type=int, nargs='?', default=10000)
+                        type=int, nargs='?', default=None)
 parser.add_argument("nthreads", help="the number of parallel threads",
-                        type=int, nargs='?', default=4)
+                        type=int, nargs='?', default=None)
 parser.add_argument("-t", "--time", help="time the program", 
                         action="store_true")
 
@@ -21,7 +21,7 @@ except SystemExit as e:
 
 
 # Usage: python findPrime.py <range> <nthreads>
-# e.g. $ python findPrime.py 10000
+# e.g. $ python findPrime.py 10000 4
 # to find primes within 10000
 
 
@@ -74,13 +74,13 @@ def work(resource):
 
 
 
+def main(nthreads=None, myrange=None):
+    if nthreads is None:
+        nthreads = args.nthreads
+    if myrange is None:
+        myrange = args.range
 
-
-def main():
-    nthreads = args.nthreads
-    myrange = args.range
     with pydsm.Cluster(nthreads) as p:
-
         N = p.createShared("N", 1, int)
         N[0] = myrange
         prime = p.createShared("prime", N[0] + 1, int)
@@ -99,21 +99,17 @@ def main():
 
         p.runProcesses(work)
 
-        pos = 0
-        for num in numWork:
-            print("Process {} has done {} values of base" .format(pos, num))
-            pos += 1
+        # pos = 0
+        # for num in numWork:
+        #     print("Process {} has done {} values of base" .format(pos, num))
+        #     pos += 1
 
-        nprimes = 1
-        for i in range(3, N[0] + 1):
-            if prime[i]:
-                nprimes += 1
+        # nprimes = 1
+        # for i in range(3, N[0] + 1):
+        #     if prime[i]:
+        #         nprimes += 1
         
-        print("A total of {} primes were found" .format(nprimes))
-
-
-
-
+        # print("A total of {} primes were found" .format(nprimes))
 
 if __name__ == "__main__":
     start = time.time()

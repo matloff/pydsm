@@ -6,11 +6,11 @@ import time
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("nrowU", help="the number of rows of matrix U",
-                        type=int, nargs='?', default=6)
+                        type=int, nargs='?', default=None)
 parser.add_argument("ncolU", help="the number of cols of matrix U",
-                        type=int, nargs='?', default=2)
+                        type=int, nargs='?', default=None)
 parser.add_argument("numthreads", help="the number of parallel threads",
-                        type=int, nargs='?', default=4)
+                        type=int, nargs='?', default=None)
 parser.add_argument("-t", "--time", help="time the program", 
                         action="store_true")
 
@@ -41,10 +41,13 @@ def mult(res, n):
 
 
 
-def main():
-    numthreads = args.numthreads
-    nrowU = args.nrowU
-    ncolU = args.ncolU
+def main(numthreads=None, nrowU=None, ncolU=None):
+    if numthreads is None:
+        numthreads = args.numthreads
+    if nrowU is None:
+        nrowU = args.nrowU
+    if ncolU is None:
+        ncolU = args.ncolU
     numElements = nrowU * ncolU
     with pydsm.Cluster(numthreads) as cluster:
         u = cluster.createShared(name = "U", shape=(nrowU, ncolU), dataType=int)
@@ -60,23 +63,22 @@ def main():
         #        [ 9, 10],
         #        [11, 12]])
 
-
         v[:] = (np.arange(numElements) + 1).reshape(ncolU, nrowU)
         # if nrowU is 6 and ncol is 2, then v will be
         # array([[ 1,  2,  3,  4,  5,  6],
         #        [ 7,  8,  9, 10, 11, 12]])
 
-
         # Now run the processes
         cluster.runProcesses(mult, paras=(nrowU,))
         
-        print("Check out matrix w in main: {}" .format(np.array(w)))
-
-
+        # print("Check out matrix w in main: {}" .format(np.array(w)))
 
 if __name__ == "__main__":
+    if args.time:
+        print("# File format: <Array nrow> <Array ncol> <Run time>")
     start = time.time()
     main()
     end = time.time()
     if args.time:
-        print("This takes %.2f seconds" % (end - start))
+        # print("This takes %.2f seconds" % (end - start))
+        print("{} {} {:.2f}" .format(args.nrowU, args.ncolU, end - start))
