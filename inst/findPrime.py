@@ -87,6 +87,8 @@ def main(nthreads=None, myrange=None):
         nextBase = p.createShared("nextBase", 1, int)
         numWork = p.createShared("numWork", nthreads, int)
 
+        p.createLock("lock")
+
         
         # first mark all even numbers non-prime and the rest prime
         for i in range(3, N[0] + 1):
@@ -99,17 +101,17 @@ def main(nthreads=None, myrange=None):
 
         p.runProcesses(work)
 
-        # pos = 0
-        # for num in numWork:
-        #     print("Process {} has done {} values of base" .format(pos, num))
-        #     pos += 1
+        pos = 0
+        for num in numWork:
+            print("Process {} has done {} values of base" .format(pos, num))
+            pos += 1
 
-        # nprimes = 1
-        # for i in range(3, N[0] + 1):
-        #     if prime[i]:
-        #         nprimes += 1
+        nprimes = 1
+        for i in range(3, N[0] + 1):
+            if prime[i]:
+                nprimes += 1
         
-        # print("A total of {} primes were found" .format(nprimes))
+        print("A total of {} primes were found" .format(nprimes))
 
 if __name__ == "__main__":
     start = time.time()

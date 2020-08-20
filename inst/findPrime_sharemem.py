@@ -143,17 +143,17 @@ def main(nthreads=None, myrange=None):
     for p in p_list:
         p.join()
 
-    # pos = 0
-    # for num in Numwork:
-    #     print("Process {} has done {} values of base" .format(pos, num))
-    #     pos += 1
+    pos = 0
+    for num in Numwork:
+        print("Process {} has done {} values of base" .format(pos, num))
+        pos += 1
 
-    # nprimes = 0
-    # for i in range(3, n[0] + 1):
-    #     if Prime[i]:
-    #         nprimes += 1
+    nprimes = 1
+    for i in range(3, n[0] + 1):
+        if Prime[i]:
+            nprimes += 1
 
-    # print("A total of {} primes were found" .format(nprimes))
+    print("A total of {} primes were found" .format(nprimes))
 
     shm_n.close()
     shm_n.unlink()

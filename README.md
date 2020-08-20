@@ -97,8 +97,14 @@ def foo(res, ...):
 ### Locks and barriers
 
 To use a lock in the parallelized function,
-the lock first needs to be retrieved from
-'resource' (the first parameter).
+the lock first needs to be created in the main process.
+
+```
+cluster.createdLock("foo_lock")
+```
+
+Then retrieve the lock from 'resource' (the first parameter)
+in the parallel function.
 
 ```
 lock = res['lock']
